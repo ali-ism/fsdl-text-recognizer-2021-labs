@@ -27,7 +27,6 @@ class MLP(nn.Module):
         fc1_dim = self.args.get("fc1", FC1_DIM)
         fc2_dim = self.args.get("fc2", FC2_DIM)
 
-        self.dropout = nn.Dropout(0.5)
         self.fc1 = nn.Linear(input_dim, fc1_dim)
         self.fc2 = nn.Linear(fc1_dim, fc2_dim)
         self.fc3 = nn.Linear(fc2_dim, num_classes)
@@ -36,10 +35,10 @@ class MLP(nn.Module):
         x = torch.flatten(x, 1)
         x = self.fc1(x)
         x = F.relu(x)
-        x = self.dropout(x)
+        x = F.dropout(x, p=0.5, training=self.training)
         x = self.fc2(x)
         x = F.relu(x)
-        x = self.dropout(x)
+        x = F.dropout(x, p=0.5, training=self.training)
         x = self.fc3(x)
         return x
 
