@@ -8,7 +8,7 @@ LR = 1e-3
 LOSS = "cross_entropy"
 ONE_CYCLE_TOTAL_STEPS = 100
 
-
+'''
 class Accuracy(pl.metrics.Accuracy):
     """Accuracy Metric with a hack."""
 
@@ -23,6 +23,7 @@ class Accuracy(pl.metrics.Accuracy):
         if preds.min() < 0 or preds.max() > 1:
             preds = torch.nn.functional.softmax(preds, dim=-1)
         super().update(preds=preds, target=target)
+'''
 
 
 class BaseLitModel(pl.LightningModule):  # pylint: disable=too-many-ancestors
@@ -47,9 +48,9 @@ class BaseLitModel(pl.LightningModule):  # pylint: disable=too-many-ancestors
         self.one_cycle_max_lr = self.args.get("one_cycle_max_lr", None)
         self.one_cycle_total_steps = self.args.get("one_cycle_total_steps", ONE_CYCLE_TOTAL_STEPS)
 
-        self.train_acc = Accuracy()
-        self.val_acc = Accuracy()
-        self.test_acc = Accuracy()
+        self.train_acc = pl.metrics.Accuracy()
+        self.val_acc = pl.metrics.Accuracy()
+        self.test_acc = pl.metrics.Accuracy()
 
     @staticmethod
     def add_to_argparse(parser):
@@ -72,7 +73,7 @@ class BaseLitModel(pl.LightningModule):  # pylint: disable=too-many-ancestors
     def forward(self, x):
         return self.model(x)
 
-    def training_step(self, batch, batch_idx):  # pylint: disable=unused-argument
+    def training_step(self, batch):  # pylint: disable=unused-argument
         x, y = batch
         logits = self(x)
         loss = self.loss_fn(logits, y)
@@ -81,7 +82,7 @@ class BaseLitModel(pl.LightningModule):  # pylint: disable=too-many-ancestors
         self.log("train_acc", self.train_acc, on_step=False, on_epoch=True)
         return loss
 
-    def validation_step(self, batch, batch_idx):  # pylint: disable=unused-argument
+    def validation_step(self, batch):  # pylint: disable=unused-argument
         x, y = batch
         logits = self(x)
         loss = self.loss_fn(logits, y)
@@ -89,7 +90,7 @@ class BaseLitModel(pl.LightningModule):  # pylint: disable=too-many-ancestors
         self.val_acc(logits, y)
         self.log("val_acc", self.val_acc, on_step=False, on_epoch=True, prog_bar=True)
 
-    def test_step(self, batch, batch_idx):  # pylint: disable=unused-argument
+    def test_step(self, batch):  # pylint: disable=unused-argument
         x, y = batch
         logits = self(x)
         self.test_acc(logits, y)
